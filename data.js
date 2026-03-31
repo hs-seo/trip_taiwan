@@ -110,7 +110,10 @@ let serverState = { missions: {}, photos: [] };
 
 async function fetchServerState() {
     try {
-        const res = await fetch(`${API_BASE}/api/state`);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        const res = await fetch(`${API_BASE}/api/state`, { signal: controller.signal });
+        clearTimeout(timeout);
         serverState = await res.json();
     } catch (e) {
         console.warn('서버 연결 안됨, 로컬 상태만 사용:', e.message);
