@@ -363,15 +363,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderChecklist() {
         const container = document.getElementById('info-checklist');
         container.innerHTML = tripData.checklist.map(c => `
-            <div class="list-item ${c.done?'completed':''}" data-id="${c.id}" onclick="toggleChecklist('${c.id}')" style="padding:12px 15px;">
-                <div class="list-status" style="margin-right:15px;"><i class="fa-${c.done?'solid fa-square-check':'regular fa-square'}"></i></div>
-                <div class="list-info"><h4 style="margin:0;">${c.title}</h4></div>
+            <div class="list-item ${c.done?'completed':''}" data-id="${c.id}" style="padding:12px 15px;display:flex;align-items:center;gap:8px;">
+                <div onclick="toggleChecklist('${c.id}')" style="display:flex;align-items:center;flex:1;min-width:0;cursor:pointer;gap:12px;">
+                    <div class="list-status"><i class="fa-${c.done?'solid fa-square-check':'regular fa-square'}"></i></div>
+                    <div class="list-info" style="flex:1;min-width:0;"><h4 style="margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.title}</h4></div>
+                </div>
+                <div style="display:flex;gap:4px;flex-shrink:0;">
+                    <button onclick="editChecklistItem('${c.id}')" style="background:none;border:1px solid var(--border-color);padding:4px 7px;cursor:pointer;font-size:0.75rem;color:var(--text-secondary);"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="deleteChecklistItem('${c.id}')" style="background:none;border:1px solid var(--border-color);padding:4px 7px;cursor:pointer;font-size:0.75rem;color:#94a3b8;"><i class="fa-solid fa-trash"></i></button>
+                </div>
             </div>`).join('');
     }
 
     window.toggleChecklist = (id) => {
         const c = tripData.checklist.find(x => x.id === id);
         c.done = !c.done;
+        saveLocalData();
+        renderChecklist();
+    };
+
+    window.addChecklistItem = () => {
+        const newId = 'c' + Date.now();
+        tripData.checklist.push({ id: newId, title: '새 항목', done: false });
+        saveLocalData();
+        renderChecklist();
+        editChecklistItem(newId);
+    };
+
+    window.editChecklistItem = (id) => {
+        const itemEl = document.querySelector(`[data-id="${id}"] h4`);
+        if (!itemEl) return;
+        const c = tripData.checklist.find(x => x.id === id);
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = c.title;
+        input.style.cssText = 'width:100%;border:1px solid var(--border-color);padding:2px 6px;background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;font-weight:700;font-family:inherit;outline:none;';
+        const save = () => { c.title = input.value.trim() || c.title; saveLocalData(); renderChecklist(); };
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
+        itemEl.replaceWith(input);
+        input.focus();
+        input.select();
+    };
+
+    window.deleteChecklistItem = (id) => {
+        if (!confirm('항목을 삭제할까요?')) return;
+        tripData.checklist = tripData.checklist.filter(x => x.id !== id);
         saveLocalData();
         renderChecklist();
     };
