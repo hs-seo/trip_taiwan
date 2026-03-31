@@ -22,14 +22,10 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 
 app.use(cors());
 app.use(express.json());
 
-// HTML은 항상 재검증, JS/CSS/이미지는 1일 캐시 (cold start 시 JS 로딩 멈춤 방지)
+// 모든 정적 파일 no-cache (항상 재검증, 304 Not Modified로 빠르게 처리)
 app.use(express.static(__dirname, {
-    setHeaders: (res, filePath) => {
-        if (filePath.endsWith('.html')) {
-            res.set('Cache-Control', 'no-cache');
-        } else {
-            res.set('Cache-Control', 'public, max-age=86400');
-        }
+    setHeaders: (res) => {
+        res.set('Cache-Control', 'no-cache');
     }
 }));
 
