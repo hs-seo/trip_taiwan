@@ -1,4 +1,27 @@
+// 모바일 디버그: JS 에러 화면에 표시
+window.onerror = function(msg, src, line, col, err) {
+    const div = document.createElement('div');
+    div.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#c00;color:#fff;padding:10px;z-index:99999;font-size:11px;word-break:break-all;';
+    div.textContent = 'JS ERROR: ' + msg + ' (line ' + line + ')';
+    document.body.appendChild(div);
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
+    // ─── Nav (최우선 — 이후 코드에서 에러가 나도 nav는 동작해야 함) ────────────
+    const navItems = document.querySelectorAll('.nav-item');
+    const views = document.querySelectorAll('.view');
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            const target = e.currentTarget.getAttribute('data-target');
+            navItems.forEach(n => n.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            views.forEach(v => {
+                v.classList.remove('active');
+                if (v.id === `view-${target}`) v.classList.add('active');
+            });
+        });
+    });
+
     // ─── 0. Character Selection ─────────────────────────────────────────────
     const charOverlay = document.getElementById('char-select-overlay');
     const charGrid = document.getElementById('char-select-grid');
@@ -69,20 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderGallery();
     });
 
-    // ─── Nav ─────────────────────────────────────────────────────────────────
-    const navItems = document.querySelectorAll('.nav-item');
-    const views = document.querySelectorAll('.view');
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            const target = e.currentTarget.getAttribute('data-target');
-            navItems.forEach(n => n.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-            views.forEach(v => {
-                v.classList.remove('active');
-                if (v.id === `view-${target}`) v.classList.add('active');
-            });
-        });
-    });
+
 
     // ─── 6. Weather (Open-Meteo) ─────────────────────────────────────────────
     async function fetchWeather() {
