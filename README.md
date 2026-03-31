@@ -3,8 +3,6 @@
 가족 대만 여행(2026.04.29–05.02)을 위한 모바일 웹 앱.
 수사 컨셉의 인터페이스로 일정, 미션, 사진 공유, 체크리스트를 제공합니다.
 
-**라이브:** https://taiwan.lab106.kr
-
 ---
 
 ## 주요 기능
@@ -27,19 +25,18 @@
 [Cloudflare Tunnel]
         │
         ▼
-[Synology NAS - nginx 역방향 프록시]
-  taiwan.lab106.kr → localhost:18963
+[Self-hosted Server - nginx 역방향 프록시]
         │
         ▼
 [Docker Container: taiwan-trip]
-  Node.js + Express (port 18963)
+  Node.js + Express
         │
         ├── 정적 파일 서빙 (index.html, style.css, app.js, data.js, 이미지)
-        ├── /api/state          — 미션/사진 상태 조회
+        ├── /api/state              — 미션/사진 상태 조회
         ├── /api/mission/:id/complete — 미션 완료 토글
-        ├── /api/upload         — 사진 업로드 (multer)
-        ├── /api/photo/:id      — 사진 삭제
-        └── /api/download-all   — 전체 사진 ZIP 다운로드
+        ├── /api/upload             — 사진 업로드 (multer)
+        ├── /api/photo/:id          — 사진 삭제
+        └── /api/download-all       — 전체 사진 ZIP 다운로드
         │
         ├── state.json  (미션 완료 현황, 사진 메타데이터 — 볼륨 마운트)
         └── uploads/    (업로드 사진 원본 — 볼륨 마운트)
@@ -52,7 +49,7 @@
 | Frontend | Vanilla JS, HTML5, CSS3 (프레임워크 없음) |
 | Backend | Node.js + Express |
 | 파일 처리 | multer (로컬 디스크), archiver (ZIP) |
-| 인프라 | Docker, Synology NAS, Cloudflare Tunnel |
+| 인프라 | Docker, Self-hosted NAS, Cloudflare Tunnel |
 | DNS/SSL | Cloudflare (자동 HTTPS) |
 
 ---
@@ -62,14 +59,16 @@
 ```bash
 npm install
 node server.js
-# → http://localhost:18963
+# → http://localhost:3000 (PORT 환경변수로 변경 가능)
 ```
 
 ## Docker 실행
 
 ```bash
+# .env 파일 생성
+echo "PORT=3000" > .env
+
 docker compose up -d --build
-# → http://localhost:18963
 ```
 
 ### 볼륨 구조
@@ -85,28 +84,6 @@ docker compose up -d --build
 
 ---
 
-## NAS 배포 구조
-
-```
-/volume1/docker/taiwan-trip/
-├── docker-compose.yml
-├── Dockerfile
-├── server.js
-├── package.json
-├── index.html
-├── style.css
-├── app.js
-├── data.js
-├── state.json        ← 볼륨 마운트 (데이터 영속)
-├── uploads/          ← 볼륨 마운트 (사진 영속)
-└── avatar_*.png / *.jpg
-```
-
-**nginx 설정:** `/etc/nginx/sites-enabled/taiwan.conf`
-**cloudflared 설정:** `/etc/cloudflared/config.yml`
-
----
-
 ## GCP 마이그레이션 계획
 
 현재 로컬 파일 기반 스토리지를 GCP 서비스로 교체 예정:
@@ -115,6 +92,6 @@ docker compose up -d --build
 |------|---------|
 | `state.json` (로컬) | Firestore |
 | `uploads/` (로컬 디스크) | Cloud Storage |
-| Synology NAS | Cloud Run |
+| Self-hosted NAS | Cloud Run |
 
 예상 비용: 소규모 트래픽 기준 **월 $0~3** (GCP 무료 한도 내)

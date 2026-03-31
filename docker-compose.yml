@@ -4,7 +4,7 @@ services:
     container_name: taiwan-trip
     restart: unless-stopped
     ports:
-      - "18963:18963"
+      - "${PORT}:${PORT}"
     volumes:
       - ./uploads:/app/uploads
       - ./state.json:/app/state.json
@@ -12,6 +12,5 @@ services:
       - ./style.css:/app/style.css
       - ./app.js:/app/app.js
       - ./data.js:/app/data.js
-    environment:
-      - PORT=18963
-      - NODE_ENV=production
+    env_file:
+      - .env
