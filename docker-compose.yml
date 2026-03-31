@@ -4,13 +4,6 @@ services:
     container_name: taiwan-trip
     restart: unless-stopped
     ports:
-      - "${PORT}:${PORT}"
-    volumes:
-      - ./uploads:/app/uploads
-      - ./state.json:/app/state.json
-      - ./index.html:/app/index.html
-      - ./style.css:/app/style.css
-      - ./app.js:/app/app.js
-      - ./data.js:/app/data.js
+      - "${PORT:-3000}:${PORT:-3000}"
     env_file:
       - .env
