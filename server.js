@@ -105,7 +105,6 @@ app.post('/api/upload', upload.array('photos', 20), async (req, res) => {
                 contentType: f.mimetype,
                 metadata: { cacheControl: 'public, max-age=31536000' }
             });
-            await file.makePublic();
 
             return {
                 id,
