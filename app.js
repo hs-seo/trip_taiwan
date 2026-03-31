@@ -40,14 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ─── Boot ────────────────────────────────────────────────────────────────
-    await fetchServerState();
-    if (!getSelectedChar()) {
-        showCharSelect();
-    } else {
-        updateCharBadge();
-        init();
-    }
-
+    // 이벤트 리스너를 즉시 연결하기 위해 서버 상태는 백그라운드로 fetch
     function init() {
         renderHome();
         renderScheduleTabs();
@@ -56,6 +49,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderGallery();
         renderChecklist();
     }
+
+    if (!getSelectedChar()) {
+        showCharSelect();
+    } else {
+        updateCharBadge();
+        init();
+    }
+
+    // 서버 상태 수신 후 미션/갤러리만 갱신 (await 제거 → 즉시 비동기 실행)
+    fetchServerState().then(() => {
+        renderMissions();
+        renderGallery();
+    });
 
     // ─── Nav ─────────────────────────────────────────────────────────────────
     const navItems = document.querySelectorAll('.nav-item');
