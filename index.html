@@ -66,7 +66,10 @@
             <section id="view-schedule" class="view">
                 <div class="section-title" style="margin-top:5px;">
                     <span style="font-weight:900;"><i class="fa-regular fa-map"></i> 현장 이동 루트 & 일정표</span>
-                    <button class="edit-btn" id="edit-schedule-btn"><i class="fa-solid fa-pen"></i> 수정</button>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <button class="edit-btn" id="schedule-lock-btn" onclick="toggleScheduleLock()"><i class="fa-solid fa-lock"></i></button>
+                        <button class="edit-btn" id="edit-schedule-btn" style="display:none;"><i class="fa-solid fa-pen"></i> 수정</button>
+                    </div>
                 </div>
                 <div class="route-map fade-up" id="route-map"></div>
                 <div class="tabs-container">
@@ -140,7 +143,7 @@
         <div id="stamp-overlay" class="stamp-overlay"></div>
     </div>
 
-    <script src="data.js?v=4"></script>
-    <script src="app.js?v=4"></script>
+    <script src="data.js?v=5"></script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>

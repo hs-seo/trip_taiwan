@@ -53,6 +53,30 @@ app.get('/api/state', async (req, res) => {
     }
 });
 
+// PUT /api/schedule
+app.put('/api/schedule', async (req, res) => {
+    try {
+        const state = await loadState();
+        state.schedule = req.body.schedule;
+        await saveState(state);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// PUT /api/checklist
+app.put('/api/checklist', async (req, res) => {
+    try {
+        const state = await loadState();
+        state.checklist = req.body.checklist;
+        await saveState(state);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // POST /api/mission/:id/complete
 app.post('/api/mission/:id/complete', async (req, res) => {
     try {

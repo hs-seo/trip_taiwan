@@ -115,8 +115,42 @@ async function fetchServerState() {
         const res = await fetch(`${API_BASE}/api/state`, { signal: controller.signal });
         clearTimeout(timeout);
         serverState = await res.json();
+        if (serverState.schedule) {
+            tripData.schedule = serverState.schedule;
+        } else {
+            saveScheduleToServer(tripData.schedule);
+        }
+        if (serverState.checklist) {
+            tripData.checklist = serverState.checklist;
+        } else {
+            saveChecklistToServer(tripData.checklist);
+        }
     } catch (e) {
         console.warn('서버 연결 안됨, 로컬 상태만 사용:', e.message);
+    }
+}
+
+async function saveScheduleToServer(schedule) {
+    try {
+        await fetch(`${API_BASE}/api/schedule`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ schedule })
+        });
+    } catch (e) {
+        console.warn('일정 서버 저장 실패:', e.message);
+    }
+}
+
+async function saveChecklistToServer(checklist) {
+    try {
+        await fetch(`${API_BASE}/api/checklist`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ checklist })
+        });
+    } catch (e) {
+        console.warn('체크리스트 서버 저장 실패:', e.message);
     }
 }
 

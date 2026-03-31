@@ -68,6 +68,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const editScheduleBtn = document.getElementById('edit-schedule-btn');
     let isScheduleEditing = false;
     let currentScheduleDay = 1;
+    let scheduleUnlocked = false;
+
+    window.toggleScheduleLock = () => {
+        scheduleUnlocked = !scheduleUnlocked;
+        const lockBtn = document.getElementById('schedule-lock-btn');
+        lockBtn.innerHTML = scheduleUnlocked
+            ? '<i class="fa-solid fa-lock-open"></i>'
+            : '<i class="fa-solid fa-lock"></i>';
+        editScheduleBtn.style.display = scheduleUnlocked ? '' : 'none';
+        if (!scheduleUnlocked && isScheduleEditing) {
+            isScheduleEditing = false;
+            editScheduleBtn.innerHTML = '<i class="fa-solid fa-pen"></i> 수정';
+            editScheduleBtn.classList.remove('editing');
+            renderDay(currentScheduleDay);
+        }
+    };
 
     // ─── Boot ────────────────────────────────────────────────────────────────
     function init() {
@@ -86,10 +102,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         init();
     }
 
-    // 서버 상태 수신 후 미션/갤러리만 갱신 (await 제거 → 즉시 비동기 실행)
+    // 서버 상태 수신 후 갱신
     fetchServerState().then(() => {
         renderMissions();
         renderGallery();
+        renderScheduleTabs();
+        renderDay(currentScheduleDay);
+        renderChecklist();
     });
 
 
@@ -227,7 +246,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ev.desc = item.querySelector('[data-field="desc"]').value;
             });
             saveLocalData();
+            saveScheduleToServer(tripData.schedule);
             isScheduleEditing = false;
+            scheduleUnlocked = false;
+            document.getElementById('schedule-lock-btn').innerHTML = '<i class="fa-solid fa-lock"></i>';
+            editScheduleBtn.style.display = 'none';
             editScheduleBtn.innerHTML = '<i class="fa-solid fa-pen"></i> 수정';
             editScheduleBtn.classList.remove('editing');
             renderDay(currentScheduleDay);
@@ -379,6 +402,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const c = tripData.checklist.find(x => x.id === id);
         c.done = !c.done;
         saveLocalData();
+        saveChecklistToServer(tripData.checklist);
         renderChecklist();
     };
 
@@ -386,6 +410,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const newId = 'c' + Date.now();
         tripData.checklist.push({ id: newId, title: '새 항목', done: false });
         saveLocalData();
+        saveChecklistToServer(tripData.checklist);
         renderChecklist();
         editChecklistItem(newId);
     };
@@ -398,7 +423,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         input.type = 'text';
         input.value = c.title;
         input.style.cssText = 'width:100%;border:1px solid var(--border-color);padding:2px 6px;background:var(--bg-color);color:var(--text-primary);font-size:0.9rem;font-weight:700;font-family:inherit;outline:none;';
-        const save = () => { c.title = input.value.trim() || c.title; saveLocalData(); renderChecklist(); };
+        const save = () => { c.title = input.value.trim() || c.title; saveLocalData(); saveChecklistToServer(tripData.checklist); renderChecklist(); };
         input.addEventListener('blur', save);
         input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
         itemEl.replaceWith(input);
@@ -410,6 +435,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!confirm('항목을 삭제할까요?')) return;
         tripData.checklist = tripData.checklist.filter(x => x.id !== id);
         saveLocalData();
+        saveChecklistToServer(tripData.checklist);
         renderChecklist();
     };
 });
