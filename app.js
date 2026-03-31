@@ -39,8 +39,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentCharBadge.onclick = () => showCharSelect();
     }
 
+    // ─── Schedule state (init() 전에 선언 필수 — TDZ 방지) ──────────────────
+    const scheduleTabs = document.getElementById('schedule-tabs');
+    const timelineContainer = document.getElementById('schedule-timeline');
+    const editScheduleBtn = document.getElementById('edit-schedule-btn');
+    let isScheduleEditing = false;
+    let currentScheduleDay = 1;
+
     // ─── Boot ────────────────────────────────────────────────────────────────
-    // 이벤트 리스너를 즉시 연결하기 위해 서버 상태는 백그라운드로 fetch
     function init() {
         renderHome();
         renderScheduleTabs();
@@ -130,12 +136,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ─── Schedule ────────────────────────────────────────────────────────────
-    const scheduleTabs = document.getElementById('schedule-tabs');
-    const timelineContainer = document.getElementById('schedule-timeline');
-    const editScheduleBtn = document.getElementById('edit-schedule-btn');
-    let isScheduleEditing = false;
-    let currentScheduleDay = 1;
-
     function renderScheduleTabs() {
         scheduleTabs.innerHTML = tripData.schedule.map(day => `
             <div class="day-tab ${day.day === currentScheduleDay ? 'active':''}" data-day="${day.day}">
