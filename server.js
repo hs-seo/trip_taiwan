@@ -66,9 +66,9 @@ app.post('/api/mission/:id/complete', async (req, res) => {
         const m = state.missions[id];
 
         if (action === 'reset') {
-            m.completedBy = m.completedBy.filter(c => c !== charId);
-            m.currentCount = Math.max(0, m.currentCount - 1);
-            if (m.currentCount === 0) m.done = false;
+            m.completedBy = [];
+            m.currentCount = 0;
+            m.done = false;
         } else if (action === 'increment') {
             m.currentCount++;
             if (!m.completedBy.includes(charId)) m.completedBy.push(charId);
