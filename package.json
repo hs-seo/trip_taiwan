@@ -1,0 +1,16 @@
+{
+  "name": "taiwan-trip",
+  "version": "1.0.0",
+  "description": "극비 수사: 대만 작전 - Family Trip App",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}
