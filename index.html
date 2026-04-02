@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
 <body>
     <!-- Character Select Overlay -->
@@ -47,17 +48,20 @@
                     <div class="counter" id="d-day-counter">D-??</div>
                     <p class="date">2026.04.29 – 2026.05.02</p>
                 </div>
-                <div class="weather-card fade-up delay-2">
+                <a href="https://www.accuweather.com/ko/tw/taipei-city/315078/hourly-weather-forecast/315078" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
+                <div class="weather-card fade-up delay-2" style="cursor:pointer;">
                     <div class="weather-info">
                         <h3>타이베이 현장 특이사항</h3>
                         <div class="temp">--°C 🌡️</div>
                         <p>날씨 불러오는 중...</p>
                     </div>
+                    <div style="font-size:0.65rem;font-weight:700;color:#94a3b8;text-align:right;margin-top:6px;letter-spacing:0.03em;">시간별 예보 보기 →</div>
                 </div>
+                </a>
                 <div class="section-title fade-up delay-2"><h2>금일 현장 수사 개요</h2></div>
                 <div class="fade-up delay-3" id="home-highlights"></div>
                 <div class="family-section fade-up delay-3" style="margin-top:20px;">
-                    <div class="section-title" style="margin-bottom:5px;"><h2>수사팀 & 조력묘(Cats) 🐾</h2></div>
+                    <div class="section-title" style="margin-bottom:5px;"><h2>수사팀 & 조력팀 🐾</h2></div>
                     <div class="family-avatars" id="home-avatars"></div>
                 </div>
             </section>
@@ -86,24 +90,69 @@
 
             <!-- Gallery -->
             <section id="view-gallery" class="view">
-                <div class="section-title">
-                    <h2>증거 자료 (사진) 📸</h2>
-                    <div style="display:flex;gap:8px;align-items:center;">
-                        <label for="upload-trigger" class="primary-btn" style="cursor:pointer;display:flex;gap:6px;align-items:center;">
-                            <i class="fa-solid fa-camera"></i> 수집
-                        </label>
-                        <input type="file" id="upload-trigger" accept="image/*" multiple style="display:none;">
-                        <a href="/api/download-all" class="outline-btn" style="font-size:0.75rem;padding:6px 10px;" title="전체 ZIP 다운로드">
-                            <i class="fa-solid fa-download"></i>
-                        </a>
-                    </div>
+                <div class="gallery-sub-tabs">
+                    <button class="sub-tab-btn active" data-gtab="photos"><i class="fa-solid fa-camera"></i> 사진</button>
+                    <button class="sub-tab-btn" data-gtab="bulletin"><i class="fa-solid fa-map-pin"></i> 후기</button>
                 </div>
-                <div class="gallery-grid fade-up" id="gallery-grid"
-                     style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:15px;"></div>
+
+                <!-- 사진 탭 -->
+                <div id="gtab-photos">
+                    <div class="section-title">
+                        <h2>증거 자료 (사진) 📸</h2>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <label for="upload-trigger" class="primary-btn" style="cursor:pointer;display:flex;gap:6px;align-items:center;">
+                                <i class="fa-solid fa-camera"></i> 수집
+                            </label>
+                            <input type="file" id="upload-trigger" accept="image/*" multiple style="display:none;">
+                            <a href="/api/download-all" class="outline-btn" style="font-size:0.75rem;padding:6px 10px;" title="전체 ZIP 다운로드">
+                                <i class="fa-solid fa-download"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="gallery-grid fade-up" id="gallery-grid"
+                         style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:15px;"></div>
+                </div>
+
+                <!-- 후기 탭 -->
+                <div id="gtab-bulletin" style="display:none;">
+                    <div id="bulletin-map"></div>
+                    <div class="bulletin-write-box">
+                        <textarea id="bulletin-text" placeholder="이번 여행의 소감, 기억에 남는 순간을 남겨주세요..." rows="3"></textarea>
+                        <div class="bulletin-write-actions">
+                            <button onclick="attachGPS()" id="gps-btn" class="outline-btn" style="font-size:0.75rem;"><i class="fa-solid fa-location-dot"></i> 위치 첨부</button>
+                            <span id="gps-status"></span>
+                            <button onclick="submitBulletin()" class="primary-btn" style="font-size:0.75rem;">게시</button>
+                        </div>
+                    </div>
+                    <div id="bulletin-list"></div>
+                </div>
             </section>
 
             <!-- Info -->
             <section id="view-info" class="view">
+                <!-- 환율 계산기 -->
+                <div class="info-card fade-up" style="margin-bottom:15px;">
+                    <div class="tape"></div>
+                    <div class="card-header">
+                        <i class="fa-solid fa-coins" style="font-size:1.5rem;"></i>
+                        <h3 style="font-weight:900;">환율 계산기</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="exchange-rate-info" style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:12px;">환율 불러오는 중...</div>
+                        <div style="display:flex;align-items:flex-end;gap:10px;">
+                            <div style="flex:1;">
+                                <div style="font-size:0.68rem;font-weight:800;margin-bottom:4px;color:var(--text-secondary);">🇹🇼 TWD (대만달러)</div>
+                                <input type="text" inputmode="decimal" id="twd-input" class="edit-input" style="width:100%;" placeholder="200">
+                            </div>
+                            <div style="font-size:1.1rem;font-weight:900;color:var(--text-secondary);padding-bottom:6px;">⇄</div>
+                            <div style="flex:1;">
+                                <div style="font-size:0.68rem;font-weight:800;margin-bottom:4px;color:var(--text-secondary);">🇰🇷 KRW (한국원)</div>
+                                <input type="text" inputmode="decimal" id="krw-input" class="edit-input" style="width:100%;" placeholder="8,500">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="info-card fade-up">
                     <div class="tape"></div>
                     <div class="card-header">
@@ -130,6 +179,15 @@
 
         </main>
 
+        <!-- Lightbox -->
+        <div id="lightbox" style="display:none;" onclick="closeLightbox()">
+            <button id="lb-prev" onclick="event.stopPropagation();lbNav(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+            <img id="lb-img" src="" alt="">
+            <button id="lb-next" onclick="event.stopPropagation();lbNav(1)"><i class="fa-solid fa-chevron-right"></i></button>
+            <button id="lb-close"><i class="fa-solid fa-xmark"></i></button>
+            <div id="lb-caption"></div>
+        </div>
+
         <!-- Bottom Nav -->
         <nav class="bottom-nav">
             <button class="nav-item active" data-target="home"><i class="fa-solid fa-house"></i><span>본부</span></button>
@@ -143,7 +201,9 @@
         <div id="stamp-overlay" class="stamp-overlay"></div>
     </div>
 
-    <script src="data.js?v=5"></script>
-    <script src="app.js?v=5"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="data.js?v=7"></script>
+    <script src="app.js?v=18"></script>
+    <link rel="stylesheet" href="style.css?v=4">
 </body>
 </html>

@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
         `).join('');
 
-        document.getElementById('home-avatars').innerHTML = defaultTripData.familyCharacters.map(char => `
+        const avatarCard = char => `
             <div class="avatar-card">
                 <div class="avatar-icon" style="width:48px;height:48px;border:2px solid var(--border-color);overflow:hidden;background:var(--bg-color);margin-bottom:5px;">
                     <img src="${char.img}" alt="${char.name}" style="width:100%;height:100%;object-fit:cover;image-rendering:pixelated;"
@@ -158,8 +158,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="rpg-bar"><div class="rpg-label">HP</div><div class="hp-bar-fill" style="width:${char.hp}%"></div></div>
                     <div class="rpg-bar"><div class="rpg-label">MP</div><div class="mp-bar-fill" style="width:${char.mp}%"></div></div>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        const humans = defaultTripData.familyCharacters.filter(c => c.type === 'human');
+        const allies = defaultTripData.familyCharacters.filter(c => c.type !== 'human');
+        document.getElementById('home-avatars').innerHTML =
+            `<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none;">${humans.map(avatarCard).join('')}</div>` +
+            `<div style="display:flex;gap:10px;overflow-x:auto;padding-top:4px;scrollbar-width:none;">${allies.map(avatarCard).join('')}</div>`;
 
         fetchWeather();
     }
@@ -200,21 +204,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         timelineContainer.innerHTML = dayData.events.map((ev, index) => {
             let block = '';
             if (isScheduleEditing) {
+                const tipsVal = (ev.tips || []).join('\n');
                 block = `<div class="timeline-item" data-id="${ev.id}">
                     <input type="text" class="edit-input" style="width:55px;" value="${ev.time}" data-field="time">
                     <div class="timeline-content" style="padding:10px;">
                         <input type="text" class="edit-input" value="${ev.title}" data-field="title">
                         <input type="text" class="edit-input" value="${ev.desc}" data-field="desc">
+                        <textarea class="edit-input" data-field="tips" rows="3" placeholder="꿀팁 (한 줄에 하나씩)" style="resize:vertical;min-height:50px;">${tipsVal}</textarea>
                     </div></div>`;
             } else {
                 // 5. Map link button on each event
                 const mapBtn = ev.mapUrl ? `<a href="${ev.mapUrl}" target="_blank" rel="noopener" class="map-link-btn" title="구글 지도로 보기"><i class="fa-solid fa-map-location-dot"></i></a>` : '';
+                const tipsHTML = (ev.tips && ev.tips.length)
+                    ? `<div class="tips-toggle" onclick="var s=document.getElementById('tips-sec-${ev.id}');var open=s.style.display==='block';s.style.display=open?'none':'block';this.querySelector('.tips-arrow').style.transform=open?'':'rotate(180deg)';">
+                           <i class="fa-solid fa-lightbulb"></i> 꿀팁 ${ev.tips.length}개
+                           <i class="fa-solid fa-chevron-down tips-arrow"></i>
+                       </div>
+                       <div class="tips-section" id="tips-sec-${ev.id}" style="display:none;">
+                           <ul class="tips-list" id="tips-list-${ev.id}" style="display:block;">${ev.tips.map(t => `<li>${t}</li>`).join('')}</ul>
+                           <button class="tips-edit-btn" onclick="toggleTipsEdit('${ev.id}')">✏️</button>
+                           <textarea class="tips-edit-area" id="tips-edit-${ev.id}" style="display:none;">${ev.tips.join('\n')}</textarea>
+                           <button class="tips-save-btn" id="tips-save-${ev.id}" style="display:none;" onclick="saveTips('${ev.id}', ${currentScheduleDay})">저장</button>
+                       </div>`
+                    : '';
                 block = `<div class="timeline-item fade-up" style="animation-delay:${index*0.1}s">
                     <div class="time">${ev.time}</div>
                     <div class="timeline-content">
                         <div class="timeline-icon"><i class="fa-solid ${ev.icon}"></i></div>
                         <h4>${ev.title} ${mapBtn}</h4>
                         <p>${ev.desc}</p>
+                        ${tipsHTML}
                     </div></div>`;
             }
             if (!isScheduleEditing && index === imageInsertAfter && dayData.mapImage) {
@@ -227,6 +246,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             return block;
         }).join('');
     }
+
+    window.toggleTipsEdit = (evId) => {
+        const list = document.getElementById(`tips-list-${evId}`);
+        const area = document.getElementById(`tips-edit-${evId}`);
+        const saveBtn = document.getElementById(`tips-save-${evId}`);
+        const editing = area.style.display === 'block';
+        list.style.display = editing ? 'block' : 'none';
+        area.style.display = editing ? 'none' : 'block';
+        saveBtn.style.display = editing ? 'none' : 'block';
+    };
+
+    window.saveTips = (evId, day) => {
+        const area = document.getElementById(`tips-edit-${evId}`);
+        const dayData = tripData.schedule.find(d => d.day === day);
+        const ev = dayData.events.find(e => e.id === evId);
+        ev.tips = area.value.split('\n').map(s => s.trim()).filter(Boolean);
+        saveLocalData();
+        saveScheduleToServer(tripData.schedule);
+        renderDay(day);
+    };
 
     editScheduleBtn.addEventListener('click', () => {
         if (!isScheduleEditing) {
@@ -244,6 +283,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ev.time = item.querySelector('[data-field="time"]').value;
                 ev.title = item.querySelector('[data-field="title"]').value;
                 ev.desc = item.querySelector('[data-field="desc"]').value;
+                const tipsRaw = item.querySelector('[data-field="tips"]')?.value || '';
+                ev.tips = tipsRaw.split('\n').map(s => s.trim()).filter(Boolean);
             });
             saveLocalData();
             saveScheduleToServer(tripData.schedule);
@@ -271,10 +312,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderMissions() {
+        const myChar = getSelectedChar();
+        const myId = myChar?.id;
         const container = document.getElementById('mission-list');
         container.innerHTML = tripData.missions.map(m => {
             const sm = getMissionState(m.id);
-            const isDone = m.targetCount ? sm.currentCount >= m.targetCount : sm.completedBy.length > 0;
+            // 내 캐릭터 기준 상태
+            const myCount = m.targetCount ? (sm.counts?.[myId] || 0) : 0;
+            const isDone = m.targetCount ? myCount >= m.targetCount : (sm.completedBy || []).includes(myId);
             const completors = (sm.completedBy || []).map(cid => {
                 const ch = defaultTripData.familyCharacters.find(c => c.id === cid);
                 if (!ch) return '';
@@ -283,7 +328,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                          onerror="this.outerHTML='<span style=\\'font-size:0.9rem;\\'>${ch.icon}</span>'">
                 </div>`;
             }).join('');
-            const progressHTML = m.targetCount ? `<div style="font-size:0.75rem;margin-top:5px;color:var(--text-secondary);font-weight:800;">진행: ${sm.currentCount}/${m.targetCount}</div>` : '';
+            const progressHTML = m.targetCount ? `<div style="font-size:0.75rem;margin-top:5px;color:var(--text-secondary);font-weight:800;">내 진행: ${myCount}/${m.targetCount}</div>` : '';
             return `<div class="list-item ${isDone?'completed':''}" data-id="${m.id}" onclick="toggleMission('${m.id}')">
                 <div class="list-icon">${m.icon}</div>
                 <div class="list-info">
@@ -306,11 +351,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         let action;
         if (m.targetCount) {
-            if (sm.currentCount >= m.targetCount) {
-                action = 'reset';
-            } else {
-                action = 'increment';
-            }
+            const myCount = sm.counts?.[char.id] || 0;
+            action = myCount >= m.targetCount ? 'reset' : 'increment';
         } else {
             action = 'toggle';
         }
@@ -319,15 +361,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!result) {
             // Offline fallback
             if (!serverState.missions) serverState.missions = {};
-            if (!serverState.missions[id]) serverState.missions[id] = { completedBy: [], currentCount: 0, done: false };
+            if (!serverState.missions[id]) serverState.missions[id] = { completedBy: [], counts: {}, done: false };
             const ssm = serverState.missions[id];
-            if (action === 'reset') { ssm.completedBy = ssm.completedBy.filter(c=>c!==char.id); ssm.currentCount = Math.max(0,ssm.currentCount-1); ssm.done = false; }
-            else if (action === 'increment') { ssm.currentCount++; if (!ssm.completedBy.includes(char.id)) ssm.completedBy.push(char.id); }
-            else { if (ssm.completedBy.includes(char.id)) { ssm.completedBy = ssm.completedBy.filter(c=>c!==char.id); ssm.done = false; } else { ssm.completedBy.push(char.id); ssm.done = true; } }
+            if (!ssm.counts) ssm.counts = {};
+            if (action === 'reset') { ssm.completedBy = ssm.completedBy.filter(c=>c!==char.id); ssm.counts[char.id] = 0; }
+            else if (action === 'increment') { ssm.counts[char.id] = (ssm.counts[char.id]||0)+1; if (!ssm.completedBy.includes(char.id)) ssm.completedBy.push(char.id); }
+            else { if (ssm.completedBy.includes(char.id)) ssm.completedBy = ssm.completedBy.filter(c=>c!==char.id); else ssm.completedBy.push(char.id); }
+            ssm.done = ssm.completedBy.length > 0;
         }
 
         const finalState = getMissionState(id);
-        const isDone = m.targetCount ? finalState.currentCount >= m.targetCount : finalState.completedBy.length > 0;
+        const myCount = m.targetCount ? (finalState.counts?.[char.id] || 0) : 0;
+        const isDone = m.targetCount ? myCount >= m.targetCount : (finalState.completedBy || []).includes(char.id);
         if (isDone) triggerStampAnimation();
         renderMissions();
     };
@@ -340,11 +385,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px 0;color:var(--text-secondary);font-weight:800;font-size:0.9rem;">📷 아직 증거 사진이 없습니다<br><span style="font-size:0.75rem;">수집 버튼으로 사진을 올려주세요</span></div>`;
             return;
         }
-        grid.innerHTML = photos.map(p => {
+        grid.innerHTML = photos.map((p, i) => {
             const ch = defaultTripData.familyCharacters.find(c => c.id === p.charId);
             return `<div class="polaroid-frame" style="position:relative;">
                 <div class="polaroid-tape"></div>
-                <img src="${p.url}" style="width:100%;display:block;object-fit:cover;aspect-ratio:1/1;border:2px solid var(--border-color);">
+                <img src="${p.url}" onclick="openLightbox(${i})" style="width:100%;display:block;object-fit:cover;aspect-ratio:1/1;border:2px solid var(--border-color);cursor:pointer;">
                 <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px 0;">
                     ${ch ? `<div title="${ch.name}" style="width:20px;height:20px;overflow:hidden;border:1px solid var(--border-color);flex-shrink:0;"><img src="${ch.img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='${ch.icon}'"></div>` : '<div></div>'}
                     <button onclick="deletePhoto('${p.id}')" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.75rem;" title="삭제"><i class="fa-solid fa-trash"></i></button>
@@ -437,5 +482,237 @@ document.addEventListener('DOMContentLoaded', async () => {
         saveLocalData();
         saveChecklistToServer(tripData.checklist);
         renderChecklist();
+    };
+
+    // ─── 라이트박스 ──────────────────────────────────────────────────────────
+    let lbIndex = 0;
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lb-img');
+    const lbCaption = document.getElementById('lb-caption');
+
+    window.openLightbox = (index) => {
+        const photos = serverState.photos || [];
+        lbIndex = index;
+        lbImg.src = photos[lbIndex].url;
+        const ch = defaultTripData.familyCharacters.find(c => c.id === photos[lbIndex].charId);
+        lbCaption.innerHTML = ch ? `<img src="${ch.img}" style="width:26px;height:26px;object-fit:cover;border:2px solid #fff;border-radius:50%;vertical-align:middle;margin-right:6px;" onerror="this.outerHTML='${ch.icon}'"><span style="vertical-align:middle;">${ch.name}</span>` : '';
+        lb.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeLightbox = () => {
+        lb.style.display = 'none';
+        document.body.style.overflow = '';
+        lbImg.src = '';
+    };
+
+    window.lbNav = (dir) => {
+        const photos = serverState.photos || [];
+        lbIndex = (lbIndex + dir + photos.length) % photos.length;
+        lbImg.src = photos[lbIndex].url;
+        const ch = defaultTripData.familyCharacters.find(c => c.id === photos[lbIndex].charId);
+        lbCaption.innerHTML = ch ? `<img src="${ch.img}" style="width:26px;height:26px;object-fit:cover;border:2px solid #fff;border-radius:50%;vertical-align:middle;margin-right:6px;" onerror="this.outerHTML='${ch.icon}'"><span style="vertical-align:middle;">${ch.name}</span>` : '';
+    };
+
+    // 스와이프 감지
+    let lbTouchX = 0;
+    lb.addEventListener('touchstart', e => { lbTouchX = e.touches[0].clientX; }, { passive: true });
+    lb.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - lbTouchX;
+        if (Math.abs(dx) > 40) lbNav(dx < 0 ? 1 : -1);
+    });
+
+    document.addEventListener('keydown', e => {
+        if (lb.style.display !== 'flex') return;
+        if (e.key === 'ArrowRight') lbNav(1);
+        if (e.key === 'ArrowLeft') lbNav(-1);
+        if (e.key === 'Escape') closeLightbox();
+    });
+
+    // ─── 환율 계산기 ─────────────────────────────────────────────────────────
+    let twdToKrw = null;
+
+    async function fetchExchangeRate() {
+        try {
+            const res = await fetch('https://open.er-api.com/v6/latest/TWD');
+            const data = await res.json();
+            twdToKrw = data.rates.KRW;
+            const updated = data.time_last_update_utc
+                ? new Date(data.time_last_update_utc).toLocaleDateString('ko-KR')
+                : '';
+            document.getElementById('exchange-rate-info').textContent =
+                `1 TWD ≈ ${twdToKrw.toFixed(1)} KRW  (${updated} 기준)`;
+        } catch (e) {
+            document.getElementById('exchange-rate-info').textContent = '환율 로딩 실패 (오프라인 상태)';
+        }
+    }
+
+    const fmt = n => n.toLocaleString('ko-KR');
+    const unformat = s => parseFloat(String(s).replace(/,/g, ''));
+
+    window.calcFromTWD = () => {
+        if (!twdToKrw) return;
+        const twd = unformat(document.getElementById('twd-input').value);
+        document.getElementById('krw-input').value = isNaN(twd) ? '' : fmt(Math.round(twd * twdToKrw));
+    };
+    window.calcFromKRW = () => {
+        if (!twdToKrw) return;
+        const krw = unformat(document.getElementById('krw-input').value);
+        document.getElementById('twd-input').value = isNaN(krw) ? '' : fmt(Math.round(krw / twdToKrw));
+    };
+
+    document.getElementById('twd-input').addEventListener('input', window.calcFromTWD);
+    document.getElementById('krw-input').addEventListener('input', window.calcFromKRW);
+    fetchExchangeRate();
+
+    // ─── 갤러리 서브탭 ────────────────────────────────────────────────────────
+    document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const tab = btn.dataset.gtab;
+            document.getElementById('gtab-photos').style.display = tab === 'photos' ? '' : 'none';
+            document.getElementById('gtab-bulletin').style.display = tab === 'bulletin' ? '' : 'none';
+            if (tab === 'bulletin') initBulletinTab();
+        });
+    });
+
+    // ─── 불레틴 보드 ──────────────────────────────────────────────────────────
+    let bulletinMap = null;
+    let bulletinMarkers = [];
+    let bulletins = [];
+    let pendingGPS = null;
+    let bulletinTabInited = false;
+
+    async function initBulletinTab() {
+        if (!bulletinTabInited) {
+            bulletinTabInited = true;
+            bulletinMap = L.map('bulletin-map').setView([25.0330, 121.5654], 11);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+            }).addTo(bulletinMap);
+        }
+        await loadBulletins();
+    }
+
+    async function loadBulletins() {
+        try {
+            const res = await fetch(`${API_BASE}/api/bulletins`);
+            bulletins = await res.json();
+            renderBulletins();
+            updateMapMarkers();
+        } catch (e) {
+            console.warn('불레틴 로딩 실패:', e.message);
+        }
+    }
+
+    function updateMapMarkers() {
+        bulletinMarkers.forEach(m => bulletinMap.removeLayer(m));
+        bulletinMarkers = [];
+        const withGPS = bulletins.filter(b => b.lat && b.lng);
+        withGPS.forEach(b => {
+            const char = defaultTripData.familyCharacters.find(c => c.id === b.charId);
+            const markerHtml = char?.img
+                ? `<img src="${char.img}" style="width:32px;height:32px;object-fit:cover;border:2px solid #334155;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.4);">`
+                : `<div style="font-size:22px;line-height:1;">${char?.icon || '📍'}</div>`;
+            const icon = L.divIcon({
+                html: markerHtml,
+                className: '',
+                iconSize: [32, 32],
+                iconAnchor: [16, 16],
+                popupAnchor: [0, -16]
+            });
+            const preview = b.text.length > 50 ? b.text.slice(0, 50) + '…' : b.text;
+            const marker = L.marker([b.lat, b.lng], { icon })
+                .bindPopup(`<b>${char?.icon || ''} ${b.charName}</b><br><span style="font-size:0.8em;">${preview}</span>`)
+                .addTo(bulletinMap);
+            bulletinMarkers.push(marker);
+        });
+        if (bulletinMarkers.length > 0) {
+            bulletinMap.fitBounds(L.featureGroup(bulletinMarkers).getBounds().pad(0.3));
+        }
+    }
+
+    function renderBulletins() {
+        const container = document.getElementById('bulletin-list');
+        if (bulletins.length === 0) {
+            container.innerHTML = `<div style="text-align:center;padding:30px 0;color:var(--text-secondary);font-weight:700;font-size:0.85rem;">📝 아직 후기가 없습니다<br><span style="font-size:0.75rem;">첫 번째 여행 후기를 남겨보세요!</span></div>`;
+            return;
+        }
+        container.innerHTML = bulletins.map(b => {
+            const char = defaultTripData.familyCharacters.find(c => c.id === b.charId);
+            const date = new Date(b.timestamp).toLocaleDateString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+            const locBadge = b.lat
+                ? `<span class="bulletin-loc"><i class="fa-solid fa-location-dot"></i> ${b.locationLabel || '위치 첨부됨'}</span>`
+                : '';
+            const isMe = getSelectedChar()?.id === b.charId;
+            return `<div class="bulletin-card">
+                <div class="bulletin-header">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div class="bulletin-avatar">${char?.img ? `<img src="${char.img}" onerror="this.outerHTML='${char?.icon||'👤'}'">` : (char?.icon || '👤')}</div>
+                        <div>
+                            <div style="font-size:0.82rem;font-weight:800;">${b.charName}</div>
+                            <div style="font-size:0.68rem;color:var(--text-secondary);">${date} ${locBadge}</div>
+                        </div>
+                    </div>
+                    ${isMe ? `<button onclick="deleteBulletin('${b.id}')" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:0.8rem;"><i class="fa-solid fa-trash"></i></button>` : ''}
+                </div>
+                <p class="bulletin-text">${b.text.replace(/\n/g, '<br>')}</p>
+            </div>`;
+        }).join('');
+    }
+
+    window.attachGPS = async () => {
+        const btn = document.getElementById('gps-btn');
+        const status = document.getElementById('gps-status');
+        btn.disabled = true;
+        status.textContent = '위치 확인 중...';
+        try {
+            const pos = await new Promise((resolve, reject) =>
+                navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
+            );
+            pendingGPS = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            // 역지오코딩 (OpenStreetMap Nominatim)
+            try {
+                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pendingGPS.lat}&lon=${pendingGPS.lng}&format=json`);
+                const geo = await r.json();
+                pendingGPS.locationLabel = geo.address?.city || geo.address?.town || geo.address?.county || '현재 위치';
+            } catch { pendingGPS.locationLabel = '현재 위치'; }
+            status.textContent = `📍 ${pendingGPS.locationLabel}`;
+        } catch (e) {
+            status.textContent = '위치 접근 실패';
+            pendingGPS = null;
+        }
+        btn.disabled = false;
+    };
+
+    window.submitBulletin = async () => {
+        const char = getSelectedChar();
+        if (!char) { alert('요원을 먼저 선택하세요.'); return; }
+        const text = document.getElementById('bulletin-text').value.trim();
+        if (!text) { alert('내용을 입력하세요.'); return; }
+        try {
+            const body = { charId: char.id, charName: char.name, charIcon: char.icon, text, ...pendingGPS };
+            const res = await fetch(`${API_BASE}/api/bulletin`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+            });
+            const saved = await res.json();
+            bulletins.unshift(saved);
+            document.getElementById('bulletin-text').value = '';
+            pendingGPS = null;
+            document.getElementById('gps-status').textContent = '';
+            renderBulletins();
+            updateMapMarkers();
+        } catch (e) { alert('게시 실패: 서버 연결을 확인하세요.'); }
+    };
+
+    window.deleteBulletin = async (id) => {
+        if (!confirm('이 후기를 삭제할까요?')) return;
+        try {
+            await fetch(`${API_BASE}/api/bulletin/${id}`, { method: 'DELETE' });
+            bulletins = bulletins.filter(b => b.id !== id);
+            renderBulletins();
+            updateMapMarkers();
+        } catch (e) { alert('삭제 실패.'); }
     };
 });

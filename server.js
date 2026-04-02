@@ -89,22 +89,23 @@ app.post('/api/mission/:id/complete', async (req, res) => {
         }
         const m = state.missions[id];
 
+        if (!m.counts) m.counts = {};
         if (action === 'reset') {
-            m.completedBy = [];
-            m.currentCount = 0;
-            m.done = false;
+            // 내 카운트만 리셋
+            m.counts[charId] = 0;
+            m.completedBy = m.completedBy.filter(c => c !== charId);
         } else if (action === 'increment') {
-            m.currentCount++;
+            m.counts[charId] = (m.counts[charId] || 0) + 1;
             if (!m.completedBy.includes(charId)) m.completedBy.push(charId);
         } else {
+            // 일반 미션 토글
             if (m.completedBy.includes(charId)) {
                 m.completedBy = m.completedBy.filter(c => c !== charId);
-                m.done = false;
             } else {
                 m.completedBy.push(charId);
-                m.done = true;
             }
         }
+        m.done = m.completedBy.length > 0;
 
         await saveState(state);
         res.json({ success: true, mission: m });
@@ -183,6 +184,36 @@ app.get('/api/download-all', async (req, res) => {
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
+});
+
+// GET /api/bulletins
+app.get('/api/bulletins', async (req, res) => {
+    try {
+        const state = await loadState();
+        res.json(state.bulletins || []);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/bulletin
+app.post('/api/bulletin', async (req, res) => {
+    try {
+        const state = await loadState();
+        if (!state.bulletins) state.bulletins = [];
+        const bulletin = { id: Date.now().toString(), timestamp: new Date().toISOString(), ...req.body };
+        state.bulletins.unshift(bulletin);
+        await saveState(state);
+        res.json(bulletin);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// DELETE /api/bulletin/:id
+app.delete('/api/bulletin/:id', async (req, res) => {
+    try {
+        const state = await loadState();
+        state.bulletins = (state.bulletins || []).filter(b => b.id !== req.params.id);
+        await saveState(state);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.listen(PORT, () => {
