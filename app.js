@@ -227,20 +227,47 @@ document.addEventListener('DOMContentLoaded', async () => {
                            <button class="tips-save-btn" id="tips-save-${ev.id}" style="display:none;" onclick="saveTips('${ev.id}', ${currentScheduleDay})">저장</button>
                        </div>`
                     : '';
+                const optionsHTML = (ev.options && ev.options.length)
+                    ? ev.compare
+                        ? `<div class="compare-cards">
+                               ${ev.options.map((o, ci) => `
+                               <a href="${o.mapUrl}" target="_blank" rel="noopener" class="compare-card ${ci === 0 ? 'compare-card--pick' : ''}">
+                                   ${o.tag ? `<div class="compare-tag">${o.tag}</div>` : ''}
+                                   <div class="compare-name">${o.name}</div>
+                                   <div class="compare-desc">${o.desc || ''}</div>
+                                   ${o.highlights ? `<ul class="compare-highlights">${o.highlights.map(h => `<li>${h}</li>`).join('')}</ul>` : ''}
+                                   <div class="compare-map-btn"><i class="fa-solid fa-map-location-dot"></i> 지도 보기</div>
+                               </a>`).join('')}
+                           </div>`
+                        : `<div class="options-toggle" onclick="var p=document.getElementById('opts-${ev.id}');var open=p.style.display==='block';p.style.display=open?'none':'block';this.querySelector('.opts-arrow').style.transform=open?'':'rotate(180deg)';">
+                               <i class="fa-solid fa-utensils"></i> 식당 선택지 ${ev.options.length}곳
+                               <i class="fa-solid fa-chevron-down opts-arrow"></i>
+                           </div>
+                           <div class="options-panel" id="opts-${ev.id}" style="display:none;">
+                               ${ev.options.map(o => `<a href="${o.mapUrl}" target="_blank" rel="noopener" class="option-item">
+                                   <div class="option-info"><div class="option-name">${o.name}</div><div class="option-desc">${o.desc || ''}</div></div>
+                                   <i class="fa-solid fa-map-location-dot" style="color:var(--accent-color);flex-shrink:0;"></i>
+                               </a>`).join('')}
+                           </div>`
+                    : '';
                 block = `<div class="timeline-item fade-up" style="animation-delay:${index*0.1}s">
                     <div class="time">${ev.time}</div>
                     <div class="timeline-content">
                         <div class="timeline-icon"><i class="fa-solid ${ev.icon}"></i></div>
                         <h4>${ev.title} ${mapBtn}</h4>
                         <p>${ev.desc}</p>
+                        ${optionsHTML}
                         ${tipsHTML}
                     </div></div>`;
             }
             if (!isScheduleEditing && index === imageInsertAfter && dayData.mapImage) {
                 block += `<div class="banner-box fade-up" style="margin:5px 0 20px;animation-delay:${(index+0.5)*0.1}s">
                     <div class="tape"></div>
-                    <img src="${dayData.mapImage}" alt="Day ${dayData.day} 작전 지도" class="banner-img">
-                    <div style="background:var(--card-bg);padding:6px 8px;font-size:0.7rem;font-weight:900;text-align:center;border-top:2px dashed #94a3b8;">📌 Day ${dayData.day} 작전 이동 루트</div>
+                    <div class="route-map-toggle" onclick="var img=this.nextElementSibling;var open=img.style.display!=='none';img.style.display=open?'none':'block';this.querySelector('.route-map-arrow').style.transform=open?'rotate(-90deg)':'';">
+                        📌 Day ${dayData.day} 작전 이동 루트
+                        <i class="fa-solid fa-chevron-down route-map-arrow"></i>
+                    </div>
+                    <img src="${dayData.mapImage}" alt="Day ${dayData.day} 작전 지도" class="banner-img" style="display:block;">
                 </div>`;
             }
             return block;
@@ -315,7 +342,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const myChar = getSelectedChar();
         const myId = myChar?.id;
         const container = document.getElementById('mission-list');
-        container.innerHTML = tripData.missions.map(m => {
+        container.innerHTML = defaultTripData.missions.map(m => {
             const sm = getMissionState(m.id);
             // 내 캐릭터 기준 상태
             const myCount = m.targetCount ? (sm.counts?.[myId] || 0) : 0;
@@ -344,7 +371,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     window.toggleMission = async (id) => {
-        const m = tripData.missions.find(x => x.id === id);
+        const m = defaultTripData.missions.find(x => x.id === id);
         const char = getSelectedChar();
         if (!char) { showCharSelect(); return; }
         const sm = getMissionState(id);
@@ -430,18 +457,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ─── Checklist ───────────────────────────────────────────────────────────
     function renderChecklist() {
         const container = document.getElementById('info-checklist');
-        container.innerHTML = tripData.checklist.map(c => `
-            <div class="list-item ${c.done?'completed':''}" data-id="${c.id}" style="padding:12px 15px;display:flex;align-items:center;gap:8px;">
-                <div onclick="toggleChecklist('${c.id}')" style="display:flex;align-items:center;flex:1;min-width:0;cursor:pointer;gap:12px;">
-                    <div class="list-status"><i class="fa-${c.done?'solid fa-square-check':'regular fa-square'}"></i></div>
-                    <div class="list-info" style="flex:1;min-width:0;"><h4 style="margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.title}</h4></div>
+        // category별 그룹화
+        const groups = {};
+        const catOrder = [];
+        tripData.checklist.forEach(c => {
+            const cat = c.category || '기타';
+            if (!groups[cat]) { groups[cat] = []; catOrder.push(cat); }
+            groups[cat].push(c);
+        });
+        container.innerHTML = catOrder.map(cat => {
+            const items = groups[cat];
+            const doneCount = items.filter(c => c.done).length;
+            const allDone = doneCount === items.length;
+            const catId = 'cg-' + cat.replace(/[\s·]/g, '-');
+            return `<div class="checklist-group">
+                <div class="checklist-group-header ${allDone ? 'all-done' : ''}" onclick="toggleChecklistGroup('${catId}')">
+                    <span><i class="fa-solid fa-box-open" style="margin-right:6px;font-size:0.8rem;"></i>${cat}</span>
+                    <span style="display:flex;align-items:center;gap:8px;">
+                        <span class="cg-progress">${doneCount}/${items.length}</span>
+                        <i class="fa-solid fa-chevron-down cg-arrow"></i>
+                    </span>
                 </div>
-                <div style="display:flex;gap:4px;flex-shrink:0;">
-                    <button onclick="editChecklistItem('${c.id}')" style="background:none;border:1px solid var(--border-color);padding:4px 7px;cursor:pointer;font-size:0.75rem;color:var(--text-secondary);"><i class="fa-solid fa-pen"></i></button>
-                    <button onclick="deleteChecklistItem('${c.id}')" style="background:none;border:1px solid var(--border-color);padding:4px 7px;cursor:pointer;font-size:0.75rem;color:#94a3b8;"><i class="fa-solid fa-trash"></i></button>
+                <div class="checklist-group-items" id="${catId}">
+                    ${items.map(c => `
+                    <div class="list-item ${c.done?'completed':''}" data-id="${c.id}" style="padding:10px 15px;display:flex;align-items:center;gap:8px;">
+                        <div onclick="toggleChecklist('${c.id}')" style="display:flex;align-items:center;flex:1;min-width:0;cursor:pointer;gap:12px;">
+                            <div class="list-status"><i class="fa-${c.done?'solid fa-square-check':'regular fa-square'}"></i></div>
+                            <div class="list-info" style="flex:1;min-width:0;"><h4 style="margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.title}</h4></div>
+                        </div>
+                        <div style="display:flex;gap:4px;flex-shrink:0;">
+                            <button onclick="editChecklistItem('${c.id}')" style="background:none;border:1px solid var(--border-color);padding:4px 7px;cursor:pointer;font-size:0.75rem;color:var(--text-secondary);"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteChecklistItem('${c.id}')" style="background:none;border:1px solid var(--border-color);padding:4px 7px;cursor:pointer;font-size:0.75rem;color:#94a3b8;"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>`).join('')}
                 </div>
-            </div>`).join('');
+            </div>`;
+        }).join('');
     }
+
+    window.toggleChecklistGroup = (catId) => {
+        const el = document.getElementById(catId);
+        const header = el.previousElementSibling;
+        const arrow = header.querySelector('.cg-arrow');
+        const isOpen = el.style.display !== 'none';
+        el.style.display = isOpen ? 'none' : '';
+        if (arrow) arrow.style.transform = isOpen ? 'rotate(-90deg)' : '';
+    };
 
     window.toggleChecklist = (id) => {
         const c = tripData.checklist.find(x => x.id === id);
@@ -452,8 +513,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     window.addChecklistItem = () => {
+        // 기존 카테고리 목록 수집
+        const cats = [...new Set(tripData.checklist.map(c => c.category || '기타'))];
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9000;display:flex;align-items:flex-end;';
+        overlay.innerHTML = `
+            <div style="width:100%;background:var(--card-bg);border-top:3px solid var(--border-color);padding:16px;max-height:70vh;overflow-y:auto;">
+                <div style="font-size:0.85rem;font-weight:900;margin-bottom:12px;">📦 카테고리 선택</div>
+                ${cats.map(cat => `
+                    <div class="cat-pick-item" onclick="window._pickCat('${cat.replace(/'/g,"\\'")}',this.parentElement.parentElement)"
+                         style="padding:11px 14px;border:1.5px solid var(--border-color);margin-bottom:6px;cursor:pointer;font-size:0.82rem;font-weight:800;">
+                        ${cat}
+                    </div>`).join('')}
+                <div class="cat-pick-item" onclick="window._pickCat('기타',this.parentElement.parentElement)"
+                     style="padding:11px 14px;border:1.5px dashed var(--border-color);margin-bottom:6px;cursor:pointer;font-size:0.82rem;font-weight:800;color:var(--text-secondary);">
+                    + 기타
+                </div>
+                <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;margin-top:4px;padding:10px;background:none;border:1.5px solid var(--border-color);font-size:0.8rem;font-weight:900;cursor:pointer;">취소</button>
+            </div>`;
+        document.body.appendChild(overlay);
+    };
+
+    window._pickCat = (category, overlay) => {
+        overlay.remove();
         const newId = 'c' + Date.now();
-        tripData.checklist.push({ id: newId, title: '새 항목', done: false });
+        tripData.checklist.push({ id: newId, title: '새 항목', done: false, category });
         saveLocalData();
         saveChecklistToServer(tripData.checklist);
         renderChecklist();
@@ -714,5 +798,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderBulletins();
             updateMapMarkers();
         } catch (e) { alert('삭제 실패.'); }
+    };
+
+    window.toggleGuideChapter = (id) => {
+        const chapter = document.getElementById(id);
+        const body = chapter.querySelector('.guide-chapter-body');
+        const arrow = chapter.querySelector('.gc-arrow');
+        const isOpen = body.style.display === 'block';
+        body.style.display = isOpen ? 'none' : 'block';
+        if (arrow) arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
     };
 });

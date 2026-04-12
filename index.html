@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#fdf6e3">
     <title>극비 수사: 대만</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=5">
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -177,6 +177,414 @@
                 <div class="checklist-container fade-up delay-2" id="info-checklist"></div>
             </section>
 
+        <!-- Guide / 수사 매뉴얼 -->
+        <section id="view-guide" class="view">
+            <div style="padding:16px 20px 100px;">
+                <div class="guide-header">
+                    <div class="tape" style="top:-8px;width:80px;"></div>
+                    <div style="font-size:1.5rem;margin-bottom:4px;">📖</div>
+                    <h2 style="font-size:1rem;font-weight:900;margin:0 0 4px;">극비 수사 매뉴얼</h2>
+                    <p style="font-size:0.72rem;color:var(--text-secondary);font-weight:700;margin:0;">현장 투입 전 반드시 숙지하시오.</p>
+                </div>
+
+                <!-- 챕터 1: 대만 기초 상식 -->
+                <div class="guide-chapter" id="gc1">
+                    <div class="guide-chapter-header" onclick="toggleGuideChapter('gc1')">
+                        <span class="guide-chapter-icon">🇹🇼</span>
+                        <div class="guide-chapter-title">
+                            <div class="guide-chapter-name">대만 기초 상식</div>
+                            <div class="guide-chapter-sub">알아두면 현장에서 안 당해요</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down gc-arrow"></i>
+                    </div>
+                    <div class="guide-chapter-body">
+                        <div class="guide-section">
+                            <div class="guide-section-title">🕐 시간 · 전압 · 돈</div>
+                            <ul class="guide-list">
+                                <li>시차: 한국보다 <b>1시간 느려요</b> (KST-1). 오전 10시 한국 = 오전 9시 대만</li>
+                                <li>전압: <b>110V</b>. 한국 220V 기기는 돼지코 어댑터 필수!</li>
+                                <li>화폐: <b>NT$(뉴타이완달러)</b>. 1TWD ≈ 43~45원. 현금 많이 써요</li>
+                                <li>4~5월 날씨: 평균 25~30도, 갑작스러운 소나기 잦음 → 양우산 필수</li>
+                            </ul>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">🚇 교통 꿀팁</div>
+                            <ul class="guide-list">
+                                <li><b>이지카드(Easy Card)</b>: MRT·버스 통합 교통카드. 공항 MRT 자판기에서 NT$100에 구매 (보증금 NT$50 포함)</li>
+                                <li>타오위안 공항 → 타이베이 메인역: MRT 공항선 약 35분, NT$160</li>
+                                <li>택시: 미터제. 기본요금 NT$70~85, 앱 Uber도 잘 돼요</li>
+                                <li>구글 지도가 대만에서도 잘 작동해요 (대중교통 경로 포함)</li>
+                            </ul>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">🍢 야시장 에티켓</div>
+                            <ul class="guide-list">
+                                <li><b>현금 필수</b>: 카드 안 되는 가게 매우 많음. TWD 현금 넉넉히</li>
+                                <li>서서 먹기: 아종면선처럼 서서 먹는 게 정통. 자리 찾으려 헤매지 않아도 돼요</li>
+                                <li>줄 서기 문화: 인기 가게는 줄이 기본. 팻말 따라 질서있게!</li>
+                                <li>포장 요청: "다바오(打包)" 또는 "와이따이(外帶)"</li>
+                            </ul>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">🏪 편의점 필수 아이템</div>
+                            <ul class="guide-list">
+                                <li><b>차엽단(茶葉蛋)</b>: 간장+차로 조린 달걀. 7-11 명물, NT$10~15</li>
+                                <li><b>관동조림</b>: 계산대 앞 꼬치 골라 담기. 한 꼬치 NT$10~15</li>
+                                <li><b>18일 생맥주</b>: 대만 명물 맥주. 편의점·슈퍼마켓에서 NT$35~50</li>
+                                <li>팁 문화 없음 → 계산 후 잔돈 안 줘도 돼요</li>
+                            </ul>
+                        </div>
+                        <div class="guide-refs">
+                            <a href="https://www.tripool.app/ko/articles/taiwan-travel-chinese" target="_blank" rel="noopener" class="guide-ref-link">📎 대만 여행 중국어 가이드 (tripool)</a>
+                            <a href="https://www.kkday.com/ko/blog/37515/asia-taiwan-tapei-course" target="_blank" rel="noopener" class="guide-ref-link">📎 대만 타이베이 여행 총정리 2026 (KKday)</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 챕터 2: 중국어 서바이벌 -->
+                <div class="guide-chapter" id="gc2">
+                    <div class="guide-chapter-header" onclick="toggleGuideChapter('gc2')">
+                        <span class="guide-chapter-icon">🗣️</span>
+                        <div class="guide-chapter-title">
+                            <div class="guide-chapter-name">중국어 서바이벌 회화</div>
+                            <div class="guide-chapter-sub">이것만 알면 굶지 않아요</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down gc-arrow"></i>
+                    </div>
+                    <div class="guide-chapter-body">
+                        <div class="guide-section">
+                            <div class="guide-section-title">👋 기본 인사</div>
+                            <div class="guide-phrase-grid">
+                                <div class="guide-phrase"><span class="phrase-zh">你好</span><span class="phrase-rom">니 하오</span><span class="phrase-kr">안녕하세요</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">謝謝</span><span class="phrase-rom">씨에 씨에</span><span class="phrase-kr">감사합니다</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">不客氣</span><span class="phrase-rom">부 커 치</span><span class="phrase-kr">천만에요</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">對不起</span><span class="phrase-rom">뚜이 부 치</span><span class="phrase-kr">죄송합니다</span></div>
+                            </div>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">🍜 주문할 때</div>
+                            <div class="guide-phrase-grid">
+                                <div class="guide-phrase"><span class="phrase-zh">我要這個</span><span class="phrase-rom">워 야오 쩌거</span><span class="phrase-kr">이거 주세요</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">多少錢</span><span class="phrase-rom">뚜어 샤오 치엔</span><span class="phrase-kr">얼마예요?</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">好吃</span><span class="phrase-rom">하오 츠</span><span class="phrase-kr">맛있어요!</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">不要辣</span><span class="phrase-rom">부 야오 라</span><span class="phrase-kr">안 맵게 해주세요</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">打包</span><span class="phrase-rom">다 바오</span><span class="phrase-kr">포장해 주세요</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">結帳</span><span class="phrase-rom">지에 장</span><span class="phrase-kr">계산할게요</span></div>
+                            </div>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">🆘 위급상황</div>
+                            <div class="guide-phrase-grid">
+                                <div class="guide-phrase"><span class="phrase-zh">洗手間在哪裡</span><span class="phrase-rom">시 쇼우 지엔 짜이 나리</span><span class="phrase-kr">화장실 어디예요?</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">請幫忙</span><span class="phrase-rom">칭 방 망</span><span class="phrase-kr">도와주세요</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">我不懂</span><span class="phrase-rom">워 부 동</span><span class="phrase-kr">모르겠어요</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">有韓文嗎</span><span class="phrase-rom">요우 한 원 마</span><span class="phrase-kr">한국어 있어요?</span></div>
+                            </div>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">🔢 숫자</div>
+                            <div class="guide-phrase-grid" style="grid-template-columns:repeat(5,1fr);">
+                                <div class="guide-phrase"><span class="phrase-zh">一</span><span class="phrase-rom">이</span><span class="phrase-kr">1</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">二</span><span class="phrase-rom">얼</span><span class="phrase-kr">2</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">三</span><span class="phrase-rom">싼</span><span class="phrase-kr">3</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">四</span><span class="phrase-rom">쓰</span><span class="phrase-kr">4</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">五</span><span class="phrase-rom">우</span><span class="phrase-kr">5</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">六</span><span class="phrase-rom">류</span><span class="phrase-kr">6</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">七</span><span class="phrase-rom">치</span><span class="phrase-kr">7</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">八</span><span class="phrase-rom">빠</span><span class="phrase-kr">8</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">九</span><span class="phrase-rom">지우</span><span class="phrase-kr">9</span></div>
+                                <div class="guide-phrase"><span class="phrase-zh">十</span><span class="phrase-rom">스</span><span class="phrase-kr">10</span></div>
+                            </div>
+                        </div>
+                        <div class="guide-tip-box">💡 미션 연계 — m28 "현지어 침투" · m20 "현지인과 소통"에 활용하세요!</div>
+                    </div>
+                </div>
+
+                <!-- 챕터 3: 고궁박물원 도슨트 -->
+                <div class="guide-chapter" id="gc3">
+                    <div class="guide-chapter-header" onclick="toggleGuideChapter('gc3')">
+                        <span class="guide-chapter-icon">🏛️</span>
+                        <div class="guide-chapter-title">
+                            <div class="guide-chapter-name">고궁박물원 도슨트</div>
+                            <div class="guide-chapter-sub">이 4개만 알고 가도 완벽해요</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down gc-arrow"></i>
+                    </div>
+                    <div class="guide-chapter-body">
+                        <div class="guide-artifact">
+                            <div class="guide-artifact-title">💎 취옥백채 (翠玉白菜)</div>
+                            <div class="guide-artifact-body">
+                                청나라 광서제 비(嬪)의 <b>혼수품</b>이에요. 하나의 옥 원석에서 흰색→초록색으로 자연스럽게 변하는 색을 그대로 활용해 배추를 조각했어요. 배추 위에 있는 <b>메뚜기와 여치</b>는 다산(多産)을 상징해요. 실제 크기는 약 18.7cm — 생각보다 작아서 깜짝 놀랄 수 있어요! 보통 관람객이 가장 많이 몰리는 곳이니 이른 시간에 먼저 보세요.
+                            </div>
+                        </div>
+                        <div class="guide-artifact">
+                            <div class="guide-artifact-title">🥩 육형석 (肉形石)</div>
+                            <div class="guide-artifact-body">
+                                동파육처럼 보이는 이것, 사실은 <b>자연에서 생긴 돌</b>이에요! 표면을 염색해서 마치 삶은 고기의 껍질 질감을 완벽하게 재현했어요. 실제 크기는 겨우 <b>5.7cm</b>. "이게 진짜 고기 아니야?" 하는 반응이 터져 나와요.
+                            </div>
+                        </div>
+                        <div class="guide-artifact">
+                            <div class="guide-artifact-title">🏺 모공정 (毛公鼎)</div>
+                            <div class="guide-artifact-body">
+                                BC 800년경 <b>서주 시대</b> 청동 솥이에요. 안쪽에 무려 <b>500자의 금문(金文)</b>이 새겨져 있어요 — 세계에서 가장 긴 청동기 명문이에요. 중국 역사 연구의 핵심 자료로, 박물관의 숨은 보물이에요.
+                            </div>
+                        </div>
+                        <div class="guide-artifact">
+                            <div class="guide-artifact-title">🐉 상아투각 운룡문 구 (象牙透雕)</div>
+                            <div class="guide-artifact-body">
+                                하나의 상아를 깎아 <b>17겹 동심원</b>으로 만든 공예품. 각 층이 독립적으로 회전해요! 어떻게 만들었는지 현대에도 완벽히 규명되지 않은 청나라 최고 기술의 결정체예요.
+                            </div>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">🗺️ 추천 관람 동선</div>
+                            <ul class="guide-list">
+                                <li><b>3층</b>: 청동기 · 도자기 (모공정 등 국보급)</li>
+                                <li><b>2층</b>: 서화 · 문방사우</li>
+                                <li><b>1층</b>: 옥기 · 상아 조각 (취옥백채 · 육형석 · 상아투각)</li>
+                                <li>입장 전 앱에서 한국어 오디오 가이드 다운로드 추천!</li>
+                            </ul>
+                        </div>
+                        <div class="guide-tip-box">💡 미션 연계 — m3 "취옥백채를 찾아라!"</div>
+                        <div class="guide-refs">
+                            <a href="https://www.myrealtrip.com/community/posts/57112" target="_blank" rel="noopener" class="guide-ref-link">📎 고궁박물관 주요 전시물 가이드 (마이리얼트립)</a>
+                            <a href="https://taipeipiggy.com/taiwan-national-palace-museum/" target="_blank" rel="noopener" class="guide-ref-link">📎 고궁박물관 관람 꿀팁 (타이베이피기)</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 챕터 4: 예류 지질공원 -->
+                <div class="guide-chapter" id="gc4">
+                    <div class="guide-chapter-header" onclick="toggleGuideChapter('gc4')">
+                        <span class="guide-chapter-icon">🪨</span>
+                        <div class="guide-chapter-title">
+                            <div class="guide-chapter-name">예류 지질공원 탐험</div>
+                            <div class="guide-chapter-sub">2천만 년의 시간이 만든 작품</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down gc-arrow"></i>
+                    </div>
+                    <div class="guide-chapter-body">
+                        <div class="guide-section">
+                            <div class="guide-section-title">🌍 어떻게 만들어졌을까?</div>
+                            <ul class="guide-list">
+                                <li>약 <b>2천만 년 전</b> 해저 퇴적암이 지각 운동으로 융기해 만들어진 곶(Cape)이에요</li>
+                                <li>이후 해풍 + 파도 + 염분의 침식이 수백만 년간 이어지며 지금의 신비로운 형태가 완성됐어요</li>
+                                <li>바위 종류: <b>버섯바위(蕈狀石)</b>, 촛대바위, 생강바위, 해식동굴</li>
+                            </ul>
+                        </div>
+                        <div class="guide-artifact">
+                            <div class="guide-artifact-title">👑 여왕머리 (女王頭) — 위기의 보물</div>
+                            <div class="guide-artifact-body">
+                                약 <b>4천 년</b>된 버섯바위예요. 1962~63년에 꼭대기 결절이 갈라지면서 영국 엘리자베스 여왕의 옆모습처럼 보이게 됐어요. 문제는 목 부분이 <b>매년 약 2cm씩 침식</b>되고 있다는 것 — 향후 수십 년 내에 목이 부러질 수 있어요. 지금 볼 수 있다는 게 행운이에요! 공원 곳곳에 복제품도 있는데, 원본이 침식되는 만큼 복제품도 같이 깎아내는 시스템이에요.
+                            </div>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">📍 관람 꿀팁</div>
+                            <ul class="guide-list">
+                                <li><b>반시계 방향</b>으로 돌면 동선이 효율적이에요</li>
+                                <li>여왕머리 사진 명당: 조금 멀리서 옆모습 각도로 찍기</li>
+                                <li>바닥이 미끄럽고 요철이 많아요 — 운동화 필수!</li>
+                                <li>바람이 강하고 햇볕이 강렬해요. 모자+선크림 필수</li>
+                            </ul>
+                        </div>
+                        <div class="guide-tip-box">💡 미션 연계 — m7 "여왕 폐하께 경배" · m23 "암호 바위 해독"</div>
+                        <div class="guide-refs">
+                            <a href="https://namu.wiki/w/%EC%98%88%EB%A5%98%EC%A7%80%EC%A7%88%EA%B3%B5%EC%9B%90" target="_blank" rel="noopener" class="guide-ref-link">📎 예류지질공원 상세 정보 (나무위키)</a>
+                            <a href="https://newtaipei.travel/ko/column/516" target="_blank" rel="noopener" class="guide-ref-link">📎 신베이시 공식 예류 가이드</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 챕터 5: 지우펀 & 스펀 -->
+                <div class="guide-chapter" id="gc5">
+                    <div class="guide-chapter-header" onclick="toggleGuideChapter('gc5')">
+                        <span class="guide-chapter-icon">🏮</span>
+                        <div class="guide-chapter-title">
+                            <div class="guide-chapter-name">지우펀 & 스펀 이야기</div>
+                            <div class="guide-chapter-sub">금광 마을과 소원 천등의 비밀</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down gc-arrow"></i>
+                    </div>
+                    <div class="guide-chapter-body">
+                        <div class="guide-section">
+                            <div class="guide-section-title">⛏️ 지우펀의 역사</div>
+                            <ul class="guide-list">
+                                <li>원래 <b>9가구(九份)만</b> 살던 산촌 — 그래서 이름이 지우펀(九份)이에요</li>
+                                <li>1893년 금광 발견 → 일제강점기 최전성기 (타이완의 황금시대)</li>
+                                <li>해방 후 폐광되며 쇠락 → 1989년 영화 <b>"비정성시(悲情城市)"</b> 촬영지로 재조명</li>
+                                <li>이후 관광지로 부활, 현재 대만 최고 인기 명소!</li>
+                            </ul>
+                        </div>
+                        <div class="guide-artifact">
+                            <div class="guide-artifact-title">🎬 센과 치히로의 행방불명?</div>
+                            <div class="guide-artifact-body">
+                                지우펀을 방문한 많은 분들이 <b>"여기가 센과 치히로 배경지!"</b>라고 하는데요, 사실 미야자키 하야오 감독은 <b>공식적으로 부인</b>했어요. 하지만 홍등이 켜진 밤의 골목 분위기가 너무 흡사해서 관광객들 사이에서 여전히 회자되고 있어요. 아메이 찻집 앞 계단이 특히 닮았다고 알려져 있어요.
+                            </div>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">📸 포토 명소</div>
+                            <ul class="guide-list">
+                                <li><b>아메이 찻집(阿妹茶樓)</b> 앞 계단: 홍등 켜지는 <b>일몰 17~18시</b>가 최고의 포토 타이밍</li>
+                                <li>기본 운영시간 이후 야경이 훨씬 아름다워요</li>
+                                <li>좁은 골목 인파가 많으니 소지품 조심, 아이들 손 꼭 잡기!</li>
+                            </ul>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">🔥 스펀 천등 완벽 가이드</div>
+                            <ul class="guide-list">
+                                <li>천등 유래: 과거 산적 침입 시 산으로 도망갔다가, 위험이 사라지면 <b>안전 신호로 천등을 띄웠던 데서</b> 유래했어요</li>
+                                <li>철도 위에서 날리므로 기차가 오면 점원 지시에 따라 빠르게 비켜야 해요</li>
+                            </ul>
+                            <div class="guide-lantern-colors">
+                                <div class="lantern-color" style="background:#ef4444;color:#fff;">빨강<br><small>행복</small></div>
+                                <div class="lantern-color" style="background:#eab308;color:#fff;">노랑<br><small>재물</small></div>
+                                <div class="lantern-color" style="background:#ec4899;color:#fff;">분홍<br><small>사랑</small></div>
+                                <div class="lantern-color" style="background:#3b82f6;color:#fff;">파랑<br><small>만사형통</small></div>
+                                <div class="lantern-color" style="background:#8b5cf6;color:#fff;">보라<br><small>학업</small></div>
+                                <div class="lantern-color" style="background:#f97316;color:#fff;">주황<br><small>행운</small></div>
+                                <div class="lantern-color" style="background:#10b981;color:#fff;">초록<br><small>진급</small></div>
+                                <div class="lantern-color" style="background:#94a3b8;color:#fff;">흰색<br><small>건강</small></div>
+                            </div>
+                            <ul class="guide-list" style="margin-top:8px;">
+                                <li><b>4색 천등(NT$200)</b> 추천 — 각 면에 다른 소원을 적을 수 있어요!</li>
+                            </ul>
+                        </div>
+                        <div class="guide-tip-box">💡 미션 연계 — m8 "소원 천등 발사" · m13 "지우펀 홍등 아래서"</div>
+                        <div class="guide-refs">
+                            <a href="https://www.kkday.com/ko/blog/27305/asia-taiwan-jiufen-guide" target="_blank" rel="noopener" class="guide-ref-link">📎 지우펀 완벽 가이드 (KKday 블로그)</a>
+                            <a href="https://www.tripstore.kr/blog/%EC%8A%A4%ED%8E%80-%EC%B2%9C%EB%93%B1-%EB%82%A0%EB%A6%AC%EA%B8%B0-%EB%8C%80%EB%A7%8C-%EC%97%AC%ED%96%89" target="_blank" rel="noopener" class="guide-ref-link">📎 스펀 천등 날리기 완벽 가이드 (트립스토어)</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 챕터 6: 중정기념당 -->
+                <div class="guide-chapter" id="gc6">
+                    <div class="guide-chapter-header" onclick="toggleGuideChapter('gc6')">
+                        <span class="guide-chapter-icon">🏯</span>
+                        <div class="guide-chapter-title">
+                            <div class="guide-chapter-name">중정기념당 & 역사</div>
+                            <div class="guide-chapter-sub">89개 계단에 담긴 비밀</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down gc-arrow"></i>
+                    </div>
+                    <div class="guide-chapter-body">
+                        <div class="guide-section">
+                            <div class="guide-section-title">📚 중정기념당이 뭐예요?</div>
+                            <ul class="guide-list">
+                                <li><b>장제스(蔣介石)</b> 총통을 기리는 기념관. "중정(中正)"은 장제스의 호예요</li>
+                                <li>1980년 완공. 대만과 중화민국의 상징적인 건축물이에요</li>
+                                <li>2007년, 광장 이름이 <b>"자유광장(自由廣場)"</b>으로 변경됐어요 — 대만 민주화 운동의 상징</li>
+                            </ul>
+                        </div>
+                        <div class="guide-artifact">
+                            <div class="guide-artifact-title">🔢 숫자로 보는 건축 비밀</div>
+                            <div class="guide-artifact-body">
+                                <b>89개 계단</b>: 장제스의 향년(89세)을 기념해서 설계됐어요. 올라가면서 세어보세요! <b>팔각 지붕</b>: 중국 전통에서 팔(八)은 길상(吉祥)의 숫자예요. 멀리서 보면 팔각형이에요.
+                            </div>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">💂 근위병 교대식 — 어떻게 보나요?</div>
+                            <ul class="guide-list">
+                                <li><b>매 정시(10시, 11시, 12시…)</b>에 실시해요 — 정시 10분 전에 도착해야 좋은 자리!</li>
+                                <li>육군·해군·공군 3군이 돌아가며 교대해요</li>
+                                <li>약 <b>10분간</b> 칼같은 퍼포먼스. 발소리와 총기 동작이 압도적이에요</li>
+                                <li>실내 기념관 내부 장제스 동상 앞에서도 교대식을 볼 수 있어요</li>
+                            </ul>
+                        </div>
+                        <div class="guide-tip-box">💡 미션 연계 — m14 "교대식 목격 완료"</div>
+                    </div>
+                </div>
+
+                <!-- 챕터 7: 시먼딩 & 먹거리 -->
+                <div class="guide-chapter" id="gc7">
+                    <div class="guide-chapter-header" onclick="toggleGuideChapter('gc7')">
+                        <span class="guide-chapter-icon">🍜</span>
+                        <div class="guide-chapter-title">
+                            <div class="guide-chapter-name">시먼딩 & 먹거리 마스터</div>
+                            <div class="guide-chapter-sub">뭘 먹을지 모르면 이거 보세요</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down gc-arrow"></i>
+                    </div>
+                    <div class="guide-chapter-body">
+                        <div class="guide-section">
+                            <div class="guide-section-title">🏙️ 시먼딩은 어떤 곳?</div>
+                            <ul class="guide-list">
+                                <li>일제강점기 <b>극장가(西門町)</b>였던 곳이에요 — 그래서 이름이 서문정(西門町)</li>
+                                <li>현재는 <b>"대만의 명동 + 하라주쿠"</b>. 젊음의 거리, 쇼핑+먹거리 천국</li>
+                                <li>MRT 시먼역(西門站) <b>6번 출구</b>에서 바로 연결!</li>
+                            </ul>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">🍽️ 대만 대표 먹거리</div>
+                            <ul class="guide-list">
+                                <li><b>아종면선(阿宗麵線)</b>: 곱창+굴이 들어간 걸쭉한 국수. 서서 먹기 정통! 대완(大碗) NT$70 / 소완(小碗) NT$50</li>
+                                <li><b>지파이(大雞排)</b>: 얼굴만 한 닭튀김. 길거리 최고 인기 메뉴. NT$70~100</li>
+                                <li><b>루러우판(滷肉飯)</b>: 간장 돼지고기 덮밥. 대만 국민 음식. NT$40~60</li>
+                                <li><b>굴전(蚵仔煎)</b>: 굴이 들어간 계란 전. 달콤 소스와 함께 NT$50~80</li>
+                                <li><b>총좌빙(蔥抓餅)</b>: 파가 들어간 쫄깃한 전병. NT$30~50</li>
+                                <li><b>망고빙수(芒果冰)</b>: 융캉제 스무시하우스가 유명. NT$150~200</li>
+                            </ul>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">🛍️ 까르푸 기념품 추천</div>
+                            <ul class="guide-list">
+                                <li><b>펑리수(鳳梨酥)</b>: 파인애플 케이크. 낱개 NT$20~30. 대량 구매 추천!</li>
+                                <li><b>누가 크래커</b>: 고소달콤. 봉지 단위로 저렴해요. 2~3봉 추천</li>
+                                <li><b>롤리팝(닭발탕후루)</b>, <b>태양병(太陽餅)</b>: 대만 전통 과자</li>
+                                <li>18일 생맥주도 캔으로 구매 가능!</li>
+                            </ul>
+                        </div>
+                        <div class="guide-tip-box">💡 미션 연계 — m11 "선 채로 먹방 도전" · m17 "까르푸 폭탄 쇼핑"</div>
+                    </div>
+                </div>
+
+                <!-- 챕터 8: 용산사 & 보피랴오 -->
+                <div class="guide-chapter" id="gc8">
+                    <div class="guide-chapter-header" onclick="toggleGuideChapter('gc8')">
+                        <span class="guide-chapter-icon">🎋</span>
+                        <div class="guide-chapter-title">
+                            <div class="guide-chapter-name">용산사 & 보피랴오</div>
+                            <div class="guide-chapter-sub">점괘 뽑는 법, 여기서 배워가요</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down gc-arrow"></i>
+                    </div>
+                    <div class="guide-chapter-body">
+                        <div class="guide-section">
+                            <div class="guide-section-title">⛩️ 용산사 기본 정보</div>
+                            <ul class="guide-list">
+                                <li><b>1738년</b> 건립. 약 290년 역사를 가진 대만 최고(最古) 사원 중 하나예요</li>
+                                <li>본존: <b>관세음보살(觀世音菩薩)</b></li>
+                                <li>야간에 홍등이 켜져 더욱 아름다워요. 24시간 개방!</li>
+                            </ul>
+                        </div>
+                        <div class="guide-artifact">
+                            <div class="guide-artifact-title">🎰 점괘(擲筊) 뽑는 법 — 단계별 가이드</div>
+                            <div class="guide-artifact-body">
+                                <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+                                    <div class="guide-step"><span class="step-num">1</span><span>향(香)을 받아 불을 붙이고, 두 손에 쥐고 소원을 빌어요</span></div>
+                                    <div class="guide-step"><span class="step-num">2</span><span>반달 모양 나무 조각 <b>筊杯(지아오베이)</b> 2개를 가져요</span></div>
+                                    <div class="guide-step"><span class="step-num">3</span><span>두 손에 쥐고 "허락해주시겠어요?" 하며 바닥에 던져요</span></div>
+                                    <div class="guide-step"><span class="step-num">4</span><span>하나는 평평, 하나는 볼록 = <b>허락!</b> (둘 다 같은 면이면 불허 or 재시도)</span></div>
+                                    <div class="guide-step"><span class="step-num">5</span><span>허락 받으면 번호 통에서 막대를 뽑아요</span></div>
+                                    <div class="guide-step"><span class="step-num">6</span><span>번호에 맞는 해석지를 서랍에서 찾아요 — 한국어 번역본도 있어요!</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="guide-section">
+                            <div class="guide-section-title">🏛️ 보피랴오 역사거리</div>
+                            <ul class="guide-list">
+                                <li>청나라 <b>건륭제 시기(1740년대)</b>에 지어진 건물들이 그대로 보존돼 있어요</li>
+                                <li>청나라 양식 + 일제강점기 서양식 건축이 한 거리에 공존해요</li>
+                                <li>용산사에서 <b>도보 5분</b> 거리. 세트 코스로 돌기 좋아요</li>
+                                <li>인생샷 배경으로 매우 인기! 카페·소품샵도 많아요</li>
+                            </ul>
+                        </div>
+                        <div class="guide-tip-box">💡 미션 연계 — m9 "점괘 대길 달성" · m24 "역사 현장 확보"</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
         </main>
 
         <!-- Lightbox -->
@@ -195,6 +603,7 @@
             <button class="nav-item" data-target="missions"><i class="fa-solid fa-clipboard-check"></i><span>임무</span></button>
             <button class="nav-item" data-target="gallery"><i class="fa-solid fa-image"></i><span>증거</span></button>
             <button class="nav-item" data-target="info"><i class="fa-solid fa-id-card"></i><span>정보</span></button>
+            <button class="nav-item" data-target="guide"><i class="fa-solid fa-book-open"></i><span>매뉴얼</span></button>
         </nav>
 
         <!-- Stamp Overlay -->
@@ -202,8 +611,7 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="data.js?v=7"></script>
-    <script src="app.js?v=18"></script>
-    <link rel="stylesheet" href="style.css?v=4">
+    <script src="data.js?v=9"></script>
+    <script src="app.js?v=19"></script>
 </body>
 </html>
